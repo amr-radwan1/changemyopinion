@@ -44,7 +44,6 @@ class Reply(models.Model):
     CreatedAt = models.DateTimeField(auto_now_add=True, db_column='created_at')
     isAgree = models.BooleanField(default=None, db_column='isagree')
 
-
     class Meta:
         db_table = 'replies'
         
