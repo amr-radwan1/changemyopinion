@@ -10,6 +10,7 @@ class User(models.Model):
     DisplayName = models.CharField(max_length=255, null=True, db_column='displayname')
     ChatID = ArrayField(models.IntegerField(), null=True, db_column='chatid')
     isInfluencer = models.BooleanField(default=False, db_column='isinfluencer')
+    Followers = ArrayField(models.IntegerField(), null=True, db_column='followers')  # Array of user IDs who follow this user
 
     class Meta:
         db_table = 'users'
@@ -35,13 +36,3 @@ class Reply(models.Model):
 
     class Meta:
         db_table = 'replies'
-
-
-class Follower(models.Model):
-    ID = models.AutoField(primary_key=True, db_column='id')
-    FollowerID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='followerid')
-    FollowedID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='followedid')  # Made nullable
-
-    class Meta:
-        db_table = 'followers'
-

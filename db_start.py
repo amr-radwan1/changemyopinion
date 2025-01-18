@@ -16,13 +16,12 @@ DB_PORT = os.getenv("DB_PORT")
 DROP_TABLES = """
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS posts CASCADE;
-DROP TABLE IF EXISTS followers CASCADE;
 DROP TABLE IF EXISTS replies CASCADE;
 """
 
 CREATE_USERS_TABLE = """
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
+    userid SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(255),
     password VARCHAR(128),
@@ -32,33 +31,26 @@ CREATE TABLE IF NOT EXISTS users (
     reply_points INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     is_staff BOOLEAN DEFAULT FALSE,
-    is_superuser BOOLEAN DEFAULT FALSE
+    is_superuser BOOLEAN DEFAULT FALSE,
+    followers INTEGER[] DEFAULT '{}'  -- Array of follower IDs
 );
 """
 
 CREATE_POSTS_TABLE = """
 CREATE TABLE IF NOT EXISTS posts (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    postid SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users (userid) ON DELETE CASCADE,
     upvote_count INTEGER DEFAULT 0,
     downvote_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """
 
-CREATE_FOLLOWERS_TABLE = """
-CREATE TABLE IF NOT EXISTS followers (
-    id SERIAL PRIMARY KEY,
-    follower_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    followed_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE
-);
-"""
-
 CREATE_REPLIES_TABLE = """
 CREATE TABLE IF NOT EXISTS replies (
     id SERIAL PRIMARY KEY,
-    post_id INTEGER NOT NULL REFERENCES posts (id) ON DELETE CASCADE,
-    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    post_id INTEGER NOT NULL REFERENCES posts (postid) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users (userid) ON DELETE CASCADE,
     reply_text TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -66,21 +58,15 @@ CREATE TABLE IF NOT EXISTS replies (
 
 # Sample data insertion queries
 INSERT_SAMPLE_USER = """
-INSERT INTO users (username, email, password, bio, reply_points, is_active, is_staff, is_superuser)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-RETURNING id;
+INSERT INTO users (username, email, password, bio, reply_points, is_active, is_staff, is_superuser, followers)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+RETURNING userid;
 """
 
 INSERT_SAMPLE_POST = """
 INSERT INTO posts (user_id, upvote_count, downvote_count)
 VALUES (%s, %s, %s)
-RETURNING id;
-"""
-
-INSERT_SAMPLE_FOLLOWER = """
-INSERT INTO followers (follower_id, followed_id)
-VALUES (%s, %s)
-RETURNING id;
+RETURNING postid;
 """
 
 INSERT_SAMPLE_REPLY = """
@@ -114,7 +100,6 @@ def main():
         print("Creating tables...")
         cursor.execute(CREATE_USERS_TABLE)
         cursor.execute(CREATE_POSTS_TABLE)
-        cursor.execute(CREATE_FOLLOWERS_TABLE)
         cursor.execute(CREATE_REPLIES_TABLE)
 
         # Insert sample user
@@ -128,6 +113,7 @@ def main():
             True,  # is_active
             False,  # is_staff
             False,  # is_superuser
+            '{}'  # Empty array for followers
         ))
         user_id = cursor.fetchone()[0]  # Get the new user's ID
 
@@ -151,13 +137,17 @@ def main():
             True,  # is_active
             False,  # is_staff
             False,  # is_superuser
+            '{}'  # Empty array for followers
         ))
         follower_id = cursor.fetchone()[0]  # Get the follower's ID
 
-        cursor.execute(INSERT_SAMPLE_FOLLOWER, (
-            follower_id,  # follower_id
-            user_id,  # followed_id
-        ))
+        # Update the user to add the follower to the followers array
+        print("Adding follower to user's followers array...")
+        cursor.execute("""
+        UPDATE users
+        SET followers = array_append(followers, %s)
+        WHERE userid = %s;
+        """, (follower_id, user_id))
 
         # Insert sample reply
         print("Inserting sample reply...")
@@ -173,7 +163,7 @@ def main():
 
         print(f"Sample user inserted with ID: {user_id}")
         print(f"Sample post inserted with ID: {post_id}")
-        print(f"Sample follower relation inserted with ID: {follower_id}")
+        print(f"Sample follower relation added to user with ID: {user_id}")
         print(f"Sample reply inserted with ID: {reply_id}")
 
     except Exception as e:
