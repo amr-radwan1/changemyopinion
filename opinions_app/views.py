@@ -72,10 +72,6 @@ class PromptListView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class LogoutUserView(APIView):
-    def post(self, request):
-        logout(request)
-        return redirect('login')  # Redirect to login page after logout
 
 class LoginUserView(APIView):
     def post(self, request):
