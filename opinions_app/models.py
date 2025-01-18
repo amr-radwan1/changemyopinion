@@ -37,10 +37,10 @@ class Post(models.Model):
 
 
 class Reply(models.Model):
-    ReplyID = models.AutoField(primary_key=True, db_column='replyid')
+    ReplyID = models.AutoField(primary_key=True, db_column='id')
     PostID = models.ForeignKey(Post, on_delete=models.CASCADE, db_column='post_id')  # Relating to Post
     UserID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id')  # Relating to User
-    ReplyText = models.TextField(db_column='replytext')
+    ReplyText = models.TextField(db_column='reply_text')
     CreatedAt = models.DateTimeField(auto_now_add=True, db_column='created_at')
     isAgree = models.BooleanField(default=None, db_column='isagree')
 

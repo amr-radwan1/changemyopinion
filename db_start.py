@@ -20,6 +20,14 @@ DROP TABLE IF EXISTS replies CASCADE;
 DROP TABLE IF EXISTS prompts CASCADE;
 """
 
+CREATE_PROMPTS_TABLE = """
+CREATE TABLE IF NOT EXISTS prompts (
+    promptid SERIAL PRIMARY KEY,
+    prompt_text TEXT,
+    Category TEXT
+);
+"""
+
 CREATE_USERS_TABLE = """
 CREATE TABLE IF NOT EXISTS users (
     userid SERIAL PRIMARY KEY,
@@ -43,14 +51,6 @@ CREATE TABLE IF NOT EXISTS posts (
     downvote_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     posttext TEXT 
-);
-"""
-
-CREATE_PROMPTS_TABLE = """
-CREATE TABLE IF NOT EXISTS prompts (
-    promptid SERIAL PRIMARY KEY,
-    prompt_text TEXT,
-    Category TEXT
 );
 """
 

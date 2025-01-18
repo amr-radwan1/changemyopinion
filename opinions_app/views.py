@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import User, Post, Prompt, Reply
-from .serializers import UserSerializer, PostSerializer, PromptSerializer
+from .serializers import UserSerializer, PostSerializer, PromptSerializer, ReplySerializer
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 
@@ -184,3 +184,21 @@ class RegisterUserView(APIView):
         user.save()
         serializer = UserSerializer(user, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class GetRepliesView(APIView):
+    def get(self, request, post_id):
+        """
+        Get all replies for a specific post.
+        """
+        try:
+            post = Post.objects.get(pk=post_id)  # Get the post by ID
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Fetch all replies for the post
+        replies = Reply.objects.filter(PostID=post)
+
+        # Serialize the replies
+        reply_serializer = ReplySerializer(replies, many=True)
+
+        return Response({"replies": reply_serializer.data}, status=status.HTTP_200_OK)
