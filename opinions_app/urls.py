@@ -1,9 +1,11 @@
 # opinions_app/urls.py
 from django.urls import path
-from .views import PostListView
-from .views import login_user
+from .views import UserListView, PostListView, FollowerListView, PromptListView, LogoutUserView
 
 urlpatterns = [
-    path('posts/', PostListView.as_view(), name='post-list'),  # API endpoint for getting all posts
-    path('login/', login_user, name='login'),  # Use the function-based view directly
+    path('users/', UserListView.as_view(), name='user-list'),
+    path('posts/', PostListView.as_view(), name='post-list'),
+    path('users/<int:userid>/followers/', FollowerListView.as_view(), name='follower-list'),
+    path('prompts/', PromptListView.as_view(), name='prompt-list'),
+    path('logout/', LogoutUserView.as_view(), name='logout'),
 ]

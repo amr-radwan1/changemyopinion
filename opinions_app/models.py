@@ -4,6 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 class Prompt(models.Model):
     PromptID = models.AutoField(primary_key=True, db_column='promptid')
     PromptText = models.TextField(db_column='prompt_text')
+    Category = models.TextField(db_column='category')
     
     class Meta:
         db_table = 'prompts'
