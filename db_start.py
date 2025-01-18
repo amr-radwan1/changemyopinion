@@ -105,6 +105,7 @@ def main():
 
         # Create tables
         print("Creating tables...")
+        cursor.execute(CREATE_PROMPTS_TABLE)
         cursor.execute(CREATE_USERS_TABLE)
         cursor.execute(CREATE_POSTS_TABLE)
         cursor.execute(CREATE_REPLIES_TABLE)

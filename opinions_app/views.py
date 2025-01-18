@@ -38,8 +38,3 @@ class LoginUserView(APIView):
 def logout_user(request):
     logout(request)
     return redirect('login')  # Redirect to login page after logout
-
-
-def logout_user(request):
-    logout(request)
-    return redirect('login')  # Redirect to login page after logout
