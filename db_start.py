@@ -29,9 +29,6 @@ CREATE TABLE IF NOT EXISTS users (
     join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     bio TEXT,
     reply_points INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_staff BOOLEAN DEFAULT FALSE,
-    is_superuser BOOLEAN DEFAULT FALSE,
     followers INTEGER[] DEFAULT '{}'  -- Array of follower IDs
 );
 """
