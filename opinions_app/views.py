@@ -214,3 +214,20 @@ class GetRepliesView(APIView):
         reply_serializer = ReplySerializer(replies, many=True)
 
         return Response({"replies": reply_serializer.data}, status=status.HTTP_200_OK)
+
+
+class GetUserPostsView(APIView):
+    def get(self, request, user_id):
+        """
+        Get all posts for a specific user.
+        """
+        try:
+            # Fetch all posts by the user
+            posts = Post.objects.filter(UserID=user_id)
+        except Post.DoesNotExist:
+            return Response({"error": "No posts found for this user."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the posts
+        post_serializer = PostSerializer(posts, many=True)
+
+        return Response({"posts": post_serializer.data}, status=status.HTTP_200_OK)
