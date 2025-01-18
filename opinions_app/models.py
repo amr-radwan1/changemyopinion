@@ -1,65 +1,47 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-# Custom User Manager
-class UserManager(BaseUserManager):
-    def create_user(self, username, email=None, password=None, **extra_fields):
-        if not username:
-            raise ValueError("The Username field must be set")
-        email = self.normalize_email(email)
-        user = self.model(username=username, email=email, **extra_fields)
-        if password:
-            user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username, email=None, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        return self.create_user(username, email, password, **extra_fields)
-
-# Custom User Model
-class User(AbstractBaseUser):
-    username = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(max_length=255, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
-    join_date = models.DateTimeField(auto_now_add=True)
-    bio = models.TextField(blank=True, null=True)
-    reply_points = models.IntegerField(default=0)
-
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-
-    objects = UserManager()
-
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = []
-
-    def __str__(self):
-        return self.username
-
-# Post Model
-class Post(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    upvote_count = models.IntegerField(default=0)
-    downvote_count = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    replies = models.TextField(blank=True, null=True)  # JSON or plain text for replies
-
-    def __str__(self):
-        return f"Post by {self.user.username} at {self.created_at}"
-
-# Followers Model
-class Follower(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
-    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
-    created_at = models.DateTimeField(auto_now_add=True)
+class User(models.Model):
+    UserID = models.AutoField(primary_key=True, db_column='userid')  
+    Username = models.CharField(max_length=100, unique=True, db_column='username')
+    Email = models.EmailField(unique=True, db_column='email')
+    Password = models.CharField(max_length=255, db_column='password')
+    DisplayName = models.CharField(max_length=255, null=True, db_column='displayname')
+    ChatID = ArrayField(models.IntegerField(), null=True, db_column='chatid')
+    isInfluencer = models.BooleanField(default=False, db_column='isinfluencer')
 
     class Meta:
-        unique_together = ("follower", "followed")  # Prevent duplicate follow relationships
+        db_table = 'users'
 
-    def __str__(self):
-        return f"{self.follower.username} follows {self.followed.username}"
+
+class Post(models.Model):
+    PostID = models.AutoField(primary_key=True, db_column='postid')
+    UserID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='userid')  # Relating to User
+    UpvoteCount = models.IntegerField(default=0, db_column='upvotecount')
+    DownvoteCount = models.IntegerField(default=0, db_column='downvotecount')
+    CreatedAt = models.DateTimeField(auto_now_add=True, db_column='createdat')
+
+    class Meta:
+        db_table = 'posts'
+
+
+class Reply(models.Model):
+    ReplyID = models.AutoField(primary_key=True, db_column='replyid')
+    PostID = models.ForeignKey(Post, on_delete=models.CASCADE, db_column='postid')  # Relating to Post
+    UserID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='userid')  # Relating to User
+    ReplyText = models.TextField(db_column='replytext')
+    CreatedAt = models.DateTimeField(auto_now_add=True, db_column='createdat')
+
+    class Meta:
+        db_table = 'replies'
+
+
+class Follower(models.Model):
+    ID = models.AutoField(primary_key=True, db_column='id')
+    FollowerID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='followerid')
+    FollowedID = models.ForeignKey(User, on_delete=models.CASCADE, db_column='followedid')  # Made nullable
+
+    class Meta:
+        db_table = 'followers'
+
