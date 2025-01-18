@@ -36,10 +36,19 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE_POSTS_TABLE = """
 CREATE TABLE IF NOT EXISTS posts (
     postid SERIAL PRIMARY KEY,
+    prompt_id INTEGER REFERENCES prompts (promptid) ON DELETE SET NULL,
     user_id INTEGER NOT NULL REFERENCES users (userid) ON DELETE CASCADE,
     upvote_count INTEGER DEFAULT 0,
     downvote_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    posttext TEXT 
+);
+"""
+
+CREATE_PROMPTS_TABLE = """
+CREATE TABLE IF NOT EXISTS prompts (
+    promptid SERIAL PRIMARY KEY,
+    prompt_text TEXT
 );
 """
 
@@ -49,20 +58,21 @@ CREATE TABLE IF NOT EXISTS replies (
     post_id INTEGER NOT NULL REFERENCES posts (postid) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES users (userid) ON DELETE CASCADE,
     reply_text TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    isAgree BOOLEAN DEFAULT NULL
 );
 """
 
 # Sample data insertion queries
 INSERT_SAMPLE_USER = """
-INSERT INTO users (username, email, password, bio, reply_points, is_active, is_staff, is_superuser, followers)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO users (username, email, password, bio, reply_points, followers)
+VALUES (%s, %s, %s, %s, %s, %s)
 RETURNING userid;
 """
 
 INSERT_SAMPLE_POST = """
-INSERT INTO posts (user_id, upvote_count, downvote_count)
-VALUES (%s, %s, %s)
+INSERT INTO posts (user_id, upvote_count, downvote_count, posttext)
+VALUES (%s, %s, %s, %s)
 RETURNING postid;
 """
 
@@ -107,9 +117,6 @@ def main():
             "securepassword",  # password
             "I love sharing opinions!",  # bio
             100,  # reply_points
-            True,  # is_active
-            False,  # is_staff
-            False,  # is_superuser
             '{}'  # Empty array for followers
         ))
         user_id = cursor.fetchone()[0]  # Get the new user's ID
@@ -120,6 +127,7 @@ def main():
             user_id,  # user_id
             10,  # upvote_count
             2,  # downvote_count
+            "This is John's first post!"  # post_text
         ))
         post_id = cursor.fetchone()[0]  # Get the new post's ID
 
@@ -131,9 +139,6 @@ def main():
             "securepassword2",  # password
             "I like replying to posts!",  # bio
             50,  # reply_points
-            True,  # is_active
-            False,  # is_staff
-            False,  # is_superuser
             '{}'  # Empty array for followers
         ))
         follower_id = cursor.fetchone()[0]  # Get the follower's ID
