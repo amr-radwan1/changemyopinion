@@ -352,8 +352,8 @@ class GenerateContentView(APIView):
     """
     
     ALLOWED_CATEGORIES = {
-        'technology', 'science', 'philosophy', 'economics',
-        'education', 'environment', 'society', 'sports', 'music',
+        'sports', 'music', 'movies', 'food', 'fashion', 'tech', 'travel',
+        'politics', 'health', 'fitness'
     }
     
     def validate_category(self, category: str) -> bool:
