@@ -101,7 +101,7 @@ class GetPostView(APIView):
             return Response({"error": "Prompt not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Serialize the Prompt object
-        serializer = PromptSerializer(prompt)
+        serializer = PostSerializer(prompt)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
