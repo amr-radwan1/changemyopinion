@@ -88,6 +88,22 @@ class GetPromptView(APIView):
         serializer = PromptSerializer(prompt)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class GetPostView(APIView):
+    def get(self, request, post_id):
+        """
+        Retrieve a Prompt by its ID.
+        """
+        try:
+            # Fetch the Prompt object by ID
+            prompt = Prompt.objects.get(pk=post_id)
+        except Prompt.DoesNotExist:
+            # Return a 404 error if the Prompt does not exist
+            return Response({"error": "Prompt not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the Prompt object
+        serializer = PromptSerializer(prompt)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class LoginUserView(APIView):
     def post(self, request):
