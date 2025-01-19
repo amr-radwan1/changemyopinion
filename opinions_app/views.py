@@ -197,6 +197,12 @@ class RegisterUserView(APIView):
         serializer = UserSerializer(user, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Post, Reply
+from .serializers import ReplySerializer
+
 class GetRepliesView(APIView):
     def get(self, request, post_id):
         """
@@ -214,6 +220,28 @@ class GetRepliesView(APIView):
         reply_serializer = ReplySerializer(replies, many=True)
 
         return Response({"replies": reply_serializer.data}, status=status.HTTP_200_OK)
+
+    def post(self, request, post_id):
+        """
+        Create a new reply for a specific post.
+        """
+        try:
+            post = Post.objects.get(pk=post_id)  # Get the post by ID
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Add the PostID to the request data for serialization
+        data = request.data.copy()
+        data['PostID'] = post.PostID
+
+        # Serialize and validate the new reply
+        serializer = ReplySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()  # Save the new reply
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class GetUserPostsView(APIView):
@@ -292,28 +320,3 @@ class TotalVotesView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class PostReplyView(APIView):
-    def post(self, request, PostID):
-        """
-        Create a reply for a specific post.
-        """
-        try:
-            # Fetch the post by ID
-            post = Post.objects.get(pk=PostID)
-        except Post.DoesNotExist:
-            return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        # Include the PostID in the data to associate the reply with the post
-        ReplyText = request.data.copy()
-        ReplyText["PostID"] = PostID
-
-        # Serialize and validate the reply data
-        serializer = ReplySerializer(data=ReplyText)
-        if serializer.is_valid():
-            # Save the reply
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        # Return validation errors if any
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
