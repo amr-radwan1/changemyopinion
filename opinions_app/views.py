@@ -292,3 +292,28 @@ class TotalVotesView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class PostReplyView(APIView):
+    def post(self, request, post_id):
+        """
+        Create a reply for a specific post.
+        """
+        try:
+            # Fetch the post by ID
+            post = Post.objects.get(pk=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Include the PostID in the data to associate the reply with the post
+        reply_data = request.data.copy()
+        reply_data["PostID"] = post_id
+
+        # Serialize and validate the reply data
+        serializer = ReplySerializer(data=reply_data)
+        if serializer.is_valid():
+            # Save the reply
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        # Return validation errors if any
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

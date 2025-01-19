@@ -1,7 +1,7 @@
 # opinions_app/urls.py
 from django.urls import path
 from .views import UserListView, PostListView, FollowerListView, PromptListView, GetPromptView, GetUserByIdView, TotalVotesView
-from .views import UpdateVotesView, RegisterUserView, GetRepliesView, LoginUserView, GetUserPostsView, GetPromptsByCategoryView
+from .views import UpdateVotesView, RegisterUserView, GetRepliesView, LoginUserView, GetUserPostsView, GetPromptsByCategoryView, PostReplyView
 
 urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
@@ -17,4 +17,6 @@ urlpatterns = [
     path('user/<int:user_id>/', GetUserByIdView.as_view(), name='get_user_by_id'),
     path('prompts/category/<str:category>/', GetPromptsByCategoryView.as_view(), name='get-prompts-by-category'),
     path('user/<int:user_id>/total-votes/', TotalVotesView.as_view(), name='get-user-total-votes'),
+    path('posts/<int:post_id>/replies/', PostReplyView.as_view(), name='post-reply'),
+
 ]
