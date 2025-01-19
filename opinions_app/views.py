@@ -231,3 +231,19 @@ class GetUserPostsView(APIView):
         post_serializer = PostSerializer(posts, many=True)
 
         return Response({"posts": post_serializer.data}, status=status.HTTP_200_OK)
+    
+class GetUserByIdView(APIView):
+    def get(self, request, user_id):
+        """
+        Retrieve a user by their ID.
+        """
+        try:
+            # Fetch the user by ID
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            # Return a 404 response if the user does not exist
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the user object
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
