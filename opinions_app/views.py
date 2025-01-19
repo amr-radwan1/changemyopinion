@@ -264,3 +264,31 @@ class GetPromptsByCategoryView(APIView):
         serializer = PromptSerializer(prompts, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class TotalVotesView(APIView):
+    def get(self, request, user_id):
+        """
+        Get the total number of upvotes and downvotes for all posts by a specific user.
+        """
+        try:
+            # Fetch all posts by the user
+            posts = Post.objects.filter(UserID=user_id)
+            
+            if not posts.exists():
+                return Response({"error": "No posts found for this user."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Calculate total upvotes and downvotes
+            total_upvotes = sum(post.UpvoteCount for post in posts)
+            total_downvotes = sum(post.DownvoteCount for post in posts)
+
+            return Response(
+                {
+                    "user_id": user_id,
+                    "total_upvotes": total_upvotes,
+                    "total_downvotes": total_downvotes,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
