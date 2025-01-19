@@ -5,6 +5,15 @@ from .models import User, Post, Prompt, Reply
 from .serializers import UserSerializer, PostSerializer, PromptSerializer, ReplySerializer
 from django.shortcuts import redirect
 from django.contrib.auth import logout
+from dotenv import load_dotenv
+import os
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
 
 
 class UserListView(APIView):
@@ -335,4 +344,81 @@ class TotalVotesView(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
+class GenerateContentView(APIView):
+    """
+    API View for generating content based on category input.
+    Includes validation, rate limiting, and comprehensive error handling.
+    """
+    
+    ALLOWED_CATEGORIES = {
+        'technology', 'science', 'philosophy', 'economics',
+        'education', 'environment', 'society', 'sports', 'music',
+    }
+    
+    def validate_category(self, category: str) -> bool:
+        """Validates if the provided category is allowed."""
+        return category.lower() in self.ALLOWED_CATEGORIES
+    
+    def prepare_prompt(self, category: str) -> dict[str, any]:
+        """Prepares the API request payload with appropriate content guidelines."""
+        return {
+            "contents": [{
+                "parts": [{
+                    "text": (
+                        f"Generate a single (around 6 words) sentence, controversial take on the topic of {category}. "
+                    )
+                }]
+            }]
+        }
+    
+    def get(self, request, category: str) -> Response:
+        # Validate category
+        if not self.validate_category(category):
+            return Response(
+                {"error": f"Invalid category. Allowed categories: {', '.join(self.ALLOWED_CATEGORIES)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Construct API URL
+        api_key = os.getenv("GEMINI_API_KEY")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}"
+        
+        try:
+            # Prepare and send request
+            payload = self.prepare_prompt(category)
+            response = requests.post(url, json=payload, timeout=10)
+            response.raise_for_status()
+            
+            # Process response
+            content = response.json()
+            
+            # Log successful request
+            logger.info(f"Successfully generated content for category: {category}")
+            
+            return Response({
+                "category": category,
+                "content": content,
+                "status": "success"
+            }, status=status.HTTP_200_OK)
+            
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout while generating content for category: {category}")
+            return Response(
+                {"error": "Request timed out"},
+                status=status.HTTP_504_GATEWAY_TIMEOUT
+            )
+            
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"HTTP error while generating content: {str(e)}")
+            return Response(
+                {"error": f"API request failed: {str(e)}"},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+            
+        except Exception as e:
+            logger.error(f"Unexpected error while generating content: {str(e)}")
+            return Response(
+                {"error": "An unexpected error occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
