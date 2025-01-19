@@ -18,6 +18,4 @@ urlpatterns = [
     path('prompts/category/<str:category>/', GetPromptsByCategoryView.as_view(), name='get-prompts-by-category'),
     path('user/<int:user_id>/total-votes/', TotalVotesView.as_view(), name='get-user-total-votes'),
     path('posts/<int:post_id>/', GetPostView.as_view(), name='get-post'),
-    path('generate-content/<str:category>/', GenerateContentView.as_view(), name='generate_content'),
-
 ]
