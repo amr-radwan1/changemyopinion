@@ -95,13 +95,13 @@ class GetPostView(APIView):
         """
         try:
             # Fetch the Prompt object by ID
-            prompt = Prompt.objects.get(pk=post_id)
+            post = Post.objects.get(pk=post_id)
         except Prompt.DoesNotExist:
             # Return a 404 error if the Prompt does not exist
-            return Response({"error": "Prompt not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Serialize the Prompt object
-        serializer = PostSerializer(prompt)
+        serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
