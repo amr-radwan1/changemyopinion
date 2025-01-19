@@ -15,6 +15,6 @@ urlpatterns = [
     path('prompt/<int:prompt_id>/', GetPromptView.as_view(), name='get_prompt'),
     path('user/<int:user_id>/posts/', GetUserPostsView.as_view(), name='user-posts'),
     path('user/<int:user_id>/', GetUserByIdView.as_view(), name='get_user_by_id'),
-    path('api/prompts/category/<str:category>/', GetPromptsByCategoryView.as_view(), name='get-prompts-by-category'),
+    path('prompts/category/<str:category>/', GetPromptsByCategoryView.as_view(), name='get-prompts-by-category'),
 
 ]
