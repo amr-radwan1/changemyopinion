@@ -247,3 +247,20 @@ class GetUserByIdView(APIView):
         # Serialize the user object
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GetPromptsByCategoryView(APIView):
+    def get(self, request, category):
+        """
+        Retrieve all prompts belonging to a specific category.
+        """
+        # Fetch prompts that match the given category
+        prompts = Prompt.objects.filter(Category=category)
+
+        # Check if any prompts exist for the given category
+        if not prompts.exists():
+            return Response({"error": "No prompts found for this category."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the prompts
+        serializer = PromptSerializer(prompts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
