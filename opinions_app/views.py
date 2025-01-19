@@ -294,22 +294,22 @@ class TotalVotesView(APIView):
 
 
 class PostReplyView(APIView):
-    def post(self, request, post_id):
+    def post(self, request, PostID):
         """
         Create a reply for a specific post.
         """
         try:
             # Fetch the post by ID
-            post = Post.objects.get(pk=post_id)
+            post = Post.objects.get(pk=PostID)
         except Post.DoesNotExist:
             return Response({"error": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Include the PostID in the data to associate the reply with the post
-        reply_data = request.data.copy()
-        reply_data["PostID"] = post_id
+        ReplyText = request.data.copy()
+        ReplyText["PostID"] = PostID
 
         # Serialize and validate the reply data
-        serializer = ReplySerializer(data=reply_data)
+        serializer = ReplySerializer(data=ReplyText)
         if serializer.is_valid():
             # Save the reply
             serializer.save()
